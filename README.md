@@ -1,0 +1,1 @@
+# -gogo2ji-no-register
