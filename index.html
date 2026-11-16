@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>午前2時のレジ</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  background: #08090b;
+  color: #eee;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    sans-serif;
+}
+
+body {
+  min-height: 100vh;
+}
+
+#game {
+  width: 100%;
+  max-width: 700px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: #111317;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  height: 52px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #292c31;
+  color: #777d86;
+  font-size: 11px;
+  letter-spacing: .1em;
+}
+
+.scene {
+  flex: 1;
+  padding: 30px 22px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 62vh;
+  background:
+    radial-gradient(circle at 50% 20%, #1b1e24 0%, #111317 55%, #090a0c 100%);
+}
+
+.time {
+  color: #737982;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+
+.text {
+  font-size: 16px;
+  line-height: 2;
+  white-space: pre-wrap;
+}
+
+.choices {
+  padding: 16px 18px 30px;
+  display: grid;
+  gap: 10px;
+}
+
+button {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: 54px;
+  padding: 14px;
+  border: 1px solid #3b3f47;
+  border-radius: 12px;
+  background: #1c1f25;
+  color: #f5f5f5;
+  font-size: 15px;
+  text-align: left;
+}
+
+button:active {
+  background: #30343d;
+  transform: scale(.99);
+}
+
+.footer {
+  text-align: center;
+  color: #50555d;
+  font-size: 10px;
+  padding-bottom: 15px;
+}
+
+.ending {
+  text-align: center;
+}
+
+.ending-label {
+  display: inline-block;
+  border: 1px solid #555;
+  border-radius: 20px;
+  padding: 5px 10px;
+  color: #999;
+  font-size: 10px;
+  letter-spacing: .15em;
+  margin-bottom: 15px;
+}
+
+.ending-title {
+  font-size: 27px;
+  margin-bottom: 18px;
+}
+
+.fade {
+  animation: fade .2s ease;
+}
+
+@keyframes fade {
+  from {
+    opacity: .2;
+  }
+  to {
+    opacity: 1;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+  <div class="header">
+    <span>SHORT HORROR</span>
+    <span>午前2時のレジ</span>
+  </div>
+
+  <div id="scene" class="scene">
+
+    <div id="time" class="time"></div>
+
+    <div id="text" class="text"></div>
+
+  </div>
+
+  <div id="choices" class="choices"></div>
+
+  <div class="footer">
+    iPhone Safari対応
+  </div>
+
+</div>
+
+<script>
+"use strict";
+
+const scenes = {
+
+start: {
+  time: "午前1:56",
+  text:
+`深夜のコンビニ。
+
+大学生の主人公は、
+いつものようにアルバイトを始めた。
+
+店内には、自分以外誰もいない。
+
+レジ横には店長からのメモが置かれていた。
+
+「今日は一人でお願い。
+何かあったら電話して。」`,
+  choices: [
+    ["そのまま仕事を始める", "work"],
+    ["店長に電話する", "call"]
+  ]
+},
+
+work: {
+  time: "午前2:07",
+  text:
+`品出しをしていると、
+
+ピンポーン。
+
+入店チャイムが鳴った。
+
+しかし、
+自動ドアの前には誰もいない。
+
+店内にも誰も入ってきていない。
+
+もう一度、
+
+ピンポーン。
+
+チャイムだけが鳴った。`,
+  choices: [
+    ["気にせず仕事を続ける", "camera"],
+    ["外を確認する", "outside"]
+  ]
+},
+
+call: {
+  time: "午前1:58",
+  text:
+`店長に電話をかける。
+
+プルルル……
+プルルル……
+
+出ない。
+
+電話を切ろうとした瞬間、
+
+店内の電話が鳴った。
+
+プルルル……
+
+今度は、
+目の前にある電話だった。`,
+  choices: [
+    ["店内の電話に出る", "phone"],
+    ["無視する", "work"]
+  ]
+},
+
+outside: {
+  time: "午前2:08",
+  text:
+`駐車場には誰もいない。
+
+店のガラスを見る。
+
+自分の姿が映っている。
+
+……その隣に、
+
+もう一人いる。
+
+黒い服を着た人影。
+
+振り返る。
+
+誰もいない。`,
+  choices: [
+    ["もう一度ガラスを見る", "glass"],
+    ["急いで店内へ戻る", "camera"]
+  ]
+},
+
+glass: {
+  time: "午前2:09",
+  text:
+`もう一度ガラスを見る。
+
+今度は人影が、
+
+自分のすぐ後ろに立っている。
+
+振り返る。
+
+やはり誰もいない。
+
+その瞬間、
+
+店内の電話が鳴った。`,
+  choices: [
+    ["電話に出る", "phone"],
+    ["電話を無視する", "camera"]
+  ]
+},
+
+camera: {
+  time: "午前2:18",
+  text:
+`防犯カメラのモニターを見る。
+
+カメラ③。
+
+そこには、
+
+レジに立っている自分が映っている。
+
+しかし、
+
+今の自分はレジにいない。
+
+画面の中の自分が、
+ゆっくりこちらを向いた。
+
+そして口を動かす。
+
+「後ろ。」`,
+  choices: [
+    ["振り返る", "look"],
+    ["絶対に振り返らない", "phone"]
+  ]
+},
+
+phone: {
+  time: "午前2:19",
+  text:
+`「はい、○○店です。」
+
+電話の向こうは無言。
+
+数秒後、
+
+男の声がした。
+
+「……今、レジにいるよね？」
+
+「後ろ、見ないほうがいいよ。」
+
+電話が切れた。`,
+  choices: [
+    ["ゆっくり振り返る", "look"],
+    ["時計を見る", "clock"]
+  ]
+},
+
+look: {
+  time: "午前2:20",
+  text:
+`ゆっくり振り返る。
+
+誰もいない。
+
+……ただし、
+
+レジの客側に、
+濡れた足跡が一つだけ残っている。
+
+足跡は、
+
+バックヤードへ続いていた。`,
+  choices: [
+    ["足跡を追う", "back"],
+    ["時計を見る", "clock"]
+  ]
+},
+
+clock: {
+  time: "午前2:20",
+  text:
+`壁の時計を見る。
+
+時計の針は、
+
+2時00分。
+
+止まっている。
+
+スマホの時計を見る。
+
+2時20分。
+
+もう一度壁の時計を見る。
+
+2時00分。
+
+その瞬間、
+
+レジの下から何かが落ちた。`,
+  choices: [
+    ["拾う", "name"],
+    ["見なかったことにする", "exit"]
+  ]
+},
+
+name: {
+  time: "午前2:21",
+  text:
+`落ちていたのは、
+
+古い従業員名簿だった。
+
+ページをめくる。
+
+自分の名前がある。
+
+勤務開始
+2024年4月1日
+
+退職
+2024年4月14日
+
+……そんな記憶はない。
+
+ページの下には、
+
+小さくこう書かれていた。
+
+「退勤時刻　午前2時15分」`,
+  choices: [
+    ["店長を探す", "boss"],
+    ["店から出る", "exit"]
+  ]
+},
+
+back: {
+  time: "午前2:21",
+  text:
+`足跡を追ってバックヤードへ入る。
+
+奥に、
+普段は使わない扉がある。
+
+扉の向こうから、
+
+店長の声がした。
+
+「……遅かったね。」
+
+自分の名前を呼ばれた。`,
+  choices: [
+    ["扉を開ける", "boss"],
+    ["レジへ戻る", "name"]
+  ]
+},
+
+exit: {
+  time: "午前2:23",
+  text:
+`自動ドアを開ける。
+
+開かない。
+
+もう一度押す。
+
+開かない。
+
+店内放送が流れる。
+
+「勤務中の従業員は、
+退勤しないでください。」
+
+……その声は、
+
+自分の声だった。`,
+  choices: [
+    ["店長を探す", "boss"],
+    ["もう一度ドアを開ける", "bad"]
+  ]
+},
+
+boss: {
+  time: "午前2:14",
+  text:
+`バックヤードの奥。
+
+店長が立っている。
+
+「思い出した？」
+
+何のことか分からない。
+
+店長は続ける。
+
+「君がここで働いていたこと。」
+
+頭の中に、
+知らない記憶が流れ込んでくる。
+
+2024年4月14日。
+
+午前2時15分。
+
+自分はこの店で死んでいた。
+
+それ以来、
+
+毎晩午前2時になると、
+
+この店へ戻ってきていた。`,
+  choices: [
+    ["「俺は、いつまで？」", "true"],
+    ["何も言わない", "repeat"]
+  ]
+},
+
+repeat: {
+  time: "午前2:15",
+  text:
+`店長は答えなかった。
+
+時計の秒針が動き始める。
+
+2時15分。
+
+店内の照明が消える。
+
+スマホの画面だけが光る。
+
+「次のシフト」
+
+「明日　午前1:45」
+
+また同じ夜が始まる。`,
+  choices: [
+    ["明日のシフトを確認する", "repeatEnd"],
+    ["店長にもう一度聞く", "true"]
+  ]
+},
+
+bad: {
+  time: "午前2:24",
+  ending: "閉店",
+  text:
+`何度押しても、
+自動ドアは開かなかった。
+
+翌朝。
+
+この店の前に警察がいた。
+
+近所の人に話を聞くと、
+
+「この店、3年前に閉店してるよ。」
+
+店の中には、
+
+誰もいなかった。
+
+ただ、
+
+レジだけが動いていた。`
+},
+
+repeatEnd: {
+  time: "午前2:15",
+  ending: "永遠のシフト",
+  text:
+`スマホに表示された。
+
+「次のシフト」
+
+「明日　午前1:45」
+
+画面を閉じる。
+
+すると、
+
+店内のチャイムが鳴った。
+
+ピンポーン。
+
+そして、
+
+レジの奥から声がした。
+
+「いらっしゃいませ。」
+
+自分の声だった。`
+},
+
+true: {
+  time: "午前2:15",
+  ending: "退勤",
+  text:
+`店長は静かに言った。
+
+「今日で終わりだよ。」
+
+レジを見る。
+
+そこには、
+
+誰もいないはずのレジに
+自分の姿が映っている。
+
+「……俺は、いつまで？」
+
+店長は答えた。
+
+「君が自分で気づくまで。」
+
+店内の照明が消える。
+
+最後に、
+レジ画面だけが光る。
+
+「ありがとうございました。」
+
+午前2時15分。
+
+長かったアルバイトが、
+
+ようやく終わった。`
+}
+
+};
+
+const timeEl = document.getElementById("time");
+const textEl = document.getElementById("text");
+const choicesEl = document.getElementById("choices");
+const sceneEl = document.getElementById("scene");
+
+function showScene(id) {
+
+  const scene = scenes[id];
+
+  timeEl.textContent = scene.time;
+  textEl.textContent = scene.text;
+
+  choicesEl.innerHTML = "";
+
+  if (scene.ending) {
+
+    const ending = document.createElement("div");
+    ending.className = "ending";
+
+    ending.innerHTML =
+      '<div class="ending-label">ENDING</div>' +
+      '<div class="ending-title">' +
+      scene.ending +
+      '</div>';
+
+    choicesEl.appendChild(ending);
+
+    const restart = document.createElement("button");
+    restart.textContent = "最初から遊ぶ";
+
+    restart.addEventListener("click", function () {
+      showScene("start");
+    });
+
+    choicesEl.appendChild(restart);
+
+  } else {
+
+    scene.choices.forEach(function(choice) {
+
+      const button = document.createElement("button");
+
+      button.textContent = choice[0];
+
+      button.addEventListener("click", function () {
+        showScene(choice[1]);
+      });
+
+      choicesEl.appendChild(button);
+
+    });
+
+  }
+
+  sceneEl.classList.remove("fade");
+
+  void sceneEl.offsetWidth;
+
+  sceneEl.classList.add("fade");
+
+  window.scrollTo(0, 0);
+}
+
+showScene("start");
+
+</script>
+
+</body>
+</html>
